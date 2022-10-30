@@ -1,0 +1,103 @@
+﻿
+@{
+    ViewBag.Title = "Report";
+}
+
+
+<script src="~/Scripts/underscore-min.js"></script>
+<script src="~/Scripts/Chart.bundle.min.js"></script>
+
+<canvas id="myChart" width="600" height="250"></canvas>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        var aDatasets = [];
+
+        $.ajax({
+            context: $(this),
+            type: 'POST',
+            url: "/Report/RetrieveBarGraphResults",
+            dataType: "json",
+            success: function (data) {
+
+                for (var x = 1; x < 13; x++) {
+                    var retval = _.chain(data.Results)
+                        .where({ Month: x })
+                        .pluck("MonthlyOrders")
+                        .value()[0];
+
+                    if (retval == undefined)
+                        retval = 0;
+
+                    aDatasets.push(retval);
+                }
+
+                BuildDisplayData(aDatasets);
+            }
+        });
+
+       
+    });
+
+    function BuildDisplayData(aDatasets) {
+        var ctx = document.getElementById("myChart");
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+
+                datasets: [{
+                    label: 'Result',
+                    fill: false,
+                    data: aDatasets,
+                    backgroundColor: '#E91E63',
+                    borderColor: [
+                        'rgba(255,99,132,1)',
+                        'rgba(255,99,132,1)',
+                        'rgba(255,99,132,1)',
+                        'rgba(255,99,132,1)',
+                        'rgba(255,99,132,1)',
+                        'rgba(255,99,132,1)',
+                    ],
+                    borderWidth: 1
+                }
+                ]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                },
+                title: {
+                    display: true,
+                    text: 'Number Of Mountain Bikes Sold'
+                },
+                responsive: true,
+
+                tooltips: {
+                    callbacks: {
+                        labelColor: function (tooltipItem, chart) {
+                            return {
+                                borderColor: 'rgb(255, 0, 20)',
+                                backgroundColor: 'rgb(255,20, 0)'
+                            }
+                        }
+                    }
+                },
+                legend: {
+                    labels: {
+                        // This more specific font property overrides the global property
+                        fontColor: 'red',
+
+                    }
+                }
+            }
+        });
+    }
+</script>
